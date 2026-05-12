@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "668847618462",
+    "project_id": "meet-2-task",
+    "storage_bucket": "meet-2-task.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:668847618462:android:cdf1b0349c41e9a7f8fe8f",
+        "android_client_info": {
+          "package_name": "com.meetflow.meetflow_ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-wBxdg5hrc43KNH2GhbZxZEOPROqoYJc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
