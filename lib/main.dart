@@ -1,15 +1,21 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'app/app.dart';
-import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    runApp(const ProviderScope(child: MeetFlowApp()));
+  await Firebase.initializeApp(
+      options: FirebaseOptions(
+          apiKey: "AIzaSyD-wBxdg5hrc43KNH2GhbZxZEOPROqoYJc",
+          appId: "1:668847618462:android:cdf1b0349c41e9a7f8fe8f",
+          messagingSenderId: "messagingSenderId",
+          storageBucket: "meet-2-task.firebasestorage.app",
+          projectId: "meet-2-task"));
+  runApp(const ProviderScope(child: MeetFlowApp()));
   // } catch (e) {
   //   // Firebase not configured yet — show a setup screen
   //   runApp(_FirebaseSetupErrorApp(error: e.toString()));
@@ -20,6 +26,7 @@ void main() async {
 /// Replace firebase_options.dart by running: flutterfire configure
 class _FirebaseSetupErrorApp extends StatelessWidget {
   final String error;
+
   const _FirebaseSetupErrorApp({required this.error});
 
   @override
@@ -41,7 +48,8 @@ class _FirebaseSetupErrorApp extends StatelessWidget {
                     color: const Color(0xFF4F46E5).withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.mic_rounded, color: Color(0xFF4F46E5), size: 36),
+                  child: const Icon(Icons.mic_rounded,
+                      color: Color(0xFF4F46E5), size: 36),
                 ),
                 const SizedBox(height: 24),
                 const Text(
@@ -58,14 +66,16 @@ class _FirebaseSetupErrorApp extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
+                    border: Border.all(
+                        color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Row(
                         children: [
-                          Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 20),
+                          Icon(Icons.warning_amber_rounded,
+                              color: Color(0xFFEF4444), size: 20),
                           SizedBox(width: 8),
                           Text(
                             'Firebase Not Configured',
@@ -80,11 +90,13 @@ class _FirebaseSetupErrorApp extends StatelessWidget {
                       const SizedBox(height: 12),
                       const Text(
                         'Run this command in the project folder:',
-                        style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 13),
+                        style:
+                            TextStyle(color: Color(0xFFCBD5E1), fontSize: 13),
                       ),
                       const SizedBox(height: 10),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
                           color: const Color(0xFF1E293B),
                           borderRadius: BorderRadius.circular(10),
@@ -103,7 +115,10 @@ class _FirebaseSetupErrorApp extends StatelessWidget {
                         'Then enable in Firebase Console:\n'
                         '• Authentication → Email/Password\n'
                         '• Cloud Firestore → Create database',
-                        style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12, height: 1.6),
+                        style: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 12,
+                            height: 1.6),
                       ),
                     ],
                   ),
@@ -119,10 +134,13 @@ class _FirebaseSetupErrorApp extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text('Error details:',
-                          style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+                          style: TextStyle(
+                              color: Color(0xFF64748B), fontSize: 11)),
                       const SizedBox(height: 6),
                       Text(
-                        error.length > 200 ? '${error.substring(0, 200)}…' : error,
+                        error.length > 200
+                            ? '${error.substring(0, 200)}…'
+                            : error,
                         style: const TextStyle(
                           color: Color(0xFF94A3B8),
                           fontSize: 11,
