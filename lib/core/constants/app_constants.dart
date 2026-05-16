@@ -4,10 +4,9 @@ class AppConstants {
   static const String appName = 'MeetFlow AI';
   static const String appVersion = '1.0.0';
 
-  // Gemini
-  static const String geminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
-  // gemini-1.5-flash-8b works with google_generative_ai 0.4.x (v1beta API)
-  static const String geminiModel = 'gemini-1.5-flash-8b';
+  // Gemini — firebase_ai manages API key server-side
+  // Model name: gemini-2.5-flash (2.0 shuts down June 1, 2026)
+  static const String geminiModel = 'gemini-2.5-flash';
 
   // Firestore collections
   static const String usersCollection = 'users';

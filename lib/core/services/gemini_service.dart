@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:developer' as dev;
 import 'dart:typed_data';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:firebase_ai/firebase_ai.dart';
 import 'package:http/http.dart' as http;
 import '../constants/app_constants.dart';
 import '../errors/app_exception.dart';
@@ -13,21 +13,14 @@ abstract class GeminiService {
   Future<Map<String, dynamic>> processMeetingUrl(String url);
 }
 
-/// Direct Gemini API implementation (MVP / dev).
+/// Firebase AI Logic implementation (replaces deprecated google_generative_ai).
 class GeminiServiceImpl implements GeminiService {
   late final GenerativeModel _model;
 
   GeminiServiceImpl() {
-    final key = AppConstants.geminiApiKey;
-    if (key.isEmpty) {
-      throw AIException(
-        message: 'Gemini API key is missing.\n\nRun the app with:\nflutter run --dart-define=GEMINI_API_KEY=your_key',
-      );
-    }
-    _model = GenerativeModel(
-      model: AppConstants.geminiModel,
-      apiKey: key,
-    );
+    // Firebase AI handles the API key server-side — no key needed in code!
+    final ai = FirebaseAI.googleAI();
+    _model = ai.generativeModel(model: AppConstants.geminiModel);
   }
 
   static const String _systemPrompt = '''
@@ -84,7 +77,7 @@ If any value is unknown, use an empty string or empty array.
       final content = [
         Content.multi([
           TextPart(_systemPrompt),
-          DataPart(mimeType, bytes),
+          InlineDataPart(mimeType, bytes),
         ]),
       ];
 
@@ -135,7 +128,7 @@ If any value is unknown, use an empty string or empty array.
         final content = [
           Content.multi([
             TextPart(_systemPrompt),
-            DataPart(mimeType, bytes),
+            InlineDataPart(mimeType, bytes),
           ]),
         ];
         final aiResponse = await _model.generateContent(content);
@@ -156,7 +149,7 @@ If any value is unknown, use an empty string or empty array.
   String _humanizeError(Object e) {
     final str = e.toString().toLowerCase();
     if (str.contains('api_key') || str.contains('api key') || str.contains('invalid_api_key')) {
-      return 'Invalid Gemini API key. Check your --dart-define=GEMINI_API_KEY value.';
+      return 'Invalid Gemini API key. Check your Firebase AI Logic setup in the Firebase Console.';
     }
     if (str.contains('quota') || str.contains('resource_exhausted')) {
       return 'Gemini API quota exceeded. Try again later or check your billing.';
