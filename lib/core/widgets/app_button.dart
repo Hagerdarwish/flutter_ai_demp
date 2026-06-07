@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
 
 enum AppButtonVariant { primary, secondary, outlined, text, danger }
 
@@ -27,11 +26,13 @@ class AppButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loadingColor = _loadingIndicatorColor(context);
     final child = isLoading
-        ? const SizedBox(
+        ? SizedBox(
             width: 20,
             height: 20,
-            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+            child: CircularProgressIndicator(
+                color: loadingColor, strokeWidth: 2.5),
           )
         : Row(
             mainAxisSize: MainAxisSize.min,
@@ -40,7 +41,7 @@ class AppButton extends StatelessWidget {
                 Icon(leadingIcon, size: 18),
                 const SizedBox(width: 8),
               ],
-              Text(label, style: AppTextStyles.labelLarge(context)),
+              Text(label),
             ],
           );
 
@@ -56,7 +57,7 @@ class AppButton extends StatelessWidget {
         button = ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.secondary,
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.textPrimaryLight,
           ),
           onPressed: isLoading ? null : onPressed,
           child: child,
@@ -88,6 +89,16 @@ class AppButton extends StatelessWidget {
       child: button,
     );
   }
+
+  Color _loadingIndicatorColor(BuildContext context) {
+    return switch (variant) {
+      AppButtonVariant.primary => Theme.of(context).colorScheme.onPrimary,
+      AppButtonVariant.secondary => AppColors.textPrimaryLight,
+      AppButtonVariant.outlined => Theme.of(context).colorScheme.primary,
+      AppButtonVariant.text => Theme.of(context).colorScheme.primary,
+      AppButtonVariant.danger => Theme.of(context).colorScheme.onError,
+    };
+  }
 }
 
 /// Small icon-only action button
@@ -114,7 +125,9 @@ class AppIconButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: Icon(icon, color: color ?? Theme.of(context).colorScheme.onSurface, size: 20),
+          child: Icon(icon,
+              color: color ?? Theme.of(context).colorScheme.onSurface,
+              size: 20),
         ),
       ),
     ).animate().fadeIn();

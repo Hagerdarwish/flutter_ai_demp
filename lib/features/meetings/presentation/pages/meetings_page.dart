@@ -14,11 +14,11 @@ import '../../domain/entities/meeting.dart';
 import '../../../../app/router/route_names.dart';
 
 WidgetMeetingStatus _toWidgetStatus(MeetingStatus s) => switch (s) {
-  MeetingStatus.draft => WidgetMeetingStatus.draft,
-  MeetingStatus.processing => WidgetMeetingStatus.processing,
-  MeetingStatus.completed => WidgetMeetingStatus.completed,
-  MeetingStatus.failed => WidgetMeetingStatus.failed,
-};
+      MeetingStatus.draft => WidgetMeetingStatus.draft,
+      MeetingStatus.processing => WidgetMeetingStatus.processing,
+      MeetingStatus.completed => WidgetMeetingStatus.completed,
+      MeetingStatus.failed => WidgetMeetingStatus.failed,
+    };
 
 class MeetingsPage extends ConsumerStatefulWidget {
   const MeetingsPage({super.key});
@@ -71,14 +71,17 @@ class _MeetingsPageState extends ConsumerState<MeetingsPage> {
                   padding: const EdgeInsets.all(20),
                   itemCount: filtered.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (_, index) => _MeetingListCard(meeting: filtered[index])
-                      .animate(delay: (index * 40).ms)
-                      .fadeIn()
-                      .slideX(begin: 0.05, end: 0),
+                  itemBuilder: (_, index) =>
+                      _MeetingListCard(meeting: filtered[index])
+                          .animate(delay: (index * 40).ms)
+                          .fadeIn()
+                          .slideX(begin: 0.05, end: 0),
                 );
               },
               loading: () => const ShimmerList(),
-              error: (e, _) => ErrorState(message: e.toString(), onRetry: () => ref.refresh(meetingsProvider)),
+              error: (e, _) => ErrorState(
+                  message: e.toString(),
+                  onRetry: () => ref.refresh(meetingsProvider)),
             ),
           ),
         ],
@@ -87,7 +90,12 @@ class _MeetingsPageState extends ConsumerState<MeetingsPage> {
   }
 
   Widget _buildFilterRow() {
-    final filters = [null, MeetingStatus.completed, MeetingStatus.processing, MeetingStatus.failed];
+    final filters = [
+      null,
+      MeetingStatus.completed,
+      MeetingStatus.processing,
+      MeetingStatus.failed
+    ];
     final labels = ['All', 'Completed', 'Processing', 'Failed'];
 
     return SizedBox(
@@ -97,15 +105,56 @@ class _MeetingsPageState extends ConsumerState<MeetingsPage> {
         scrollDirection: Axis.horizontal,
         itemCount: filters.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, i) => FilterChip(
-          label: Text(labels[i]),
+        itemBuilder: (_, i) => _filterChip(
+          label: labels[i],
           selected: _filterStatus == filters[i],
+          selectedColor: _filterColor(filters[i]),
           onSelected: (_) => setState(() => _filterStatus = filters[i]),
-          selectedColor: AppColors.primary.withValues(alpha: 0.15),
-          checkmarkColor: AppColors.primary,
         ),
       ),
     );
+  }
+
+  Widget _filterChip({
+    required String label,
+    required bool selected,
+    required Color selectedColor,
+    required ValueChanged<bool> onSelected,
+  }) {
+    final theme = Theme.of(context);
+    final foreground =
+        selected ? Colors.white : theme.colorScheme.onSurfaceVariant;
+
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: onSelected,
+      showCheckmark: selected,
+      selectedColor: selectedColor,
+      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+      checkmarkColor: foreground,
+      labelStyle: AppTextStyles.labelMedium(context).copyWith(
+        color: foreground,
+        fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+        letterSpacing: 0,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      side: BorderSide(
+        color: selected ? selectedColor : theme.colorScheme.outline,
+      ),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
+    );
+  }
+
+  Color _filterColor(MeetingStatus? status) {
+    return switch (status) {
+      null => AppColors.primary,
+      MeetingStatus.draft => AppColors.neutralForeground,
+      MeetingStatus.processing => AppColors.warningForeground,
+      MeetingStatus.completed => AppColors.successForeground,
+      MeetingStatus.failed => AppColors.errorForeground,
+    };
   }
 }
 
@@ -154,13 +203,15 @@ class _MeetingListCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.access_time_rounded, size: 12, color: AppColors.textSecondaryLight),
+                        const Icon(Icons.access_time_rounded,
+                            size: 12, color: AppColors.textSecondaryLight),
                         const SizedBox(width: 4),
                         Text(DateFormatter.formatRelative(meeting.createdAt),
                             style: AppTextStyles.bodySmall(context)),
                         const SizedBox(width: 8),
                         if (meeting.sourceName.isNotEmpty) ...[
-                          const Icon(Icons.source_rounded, size: 12, color: AppColors.textSecondaryLight),
+                          const Icon(Icons.source_rounded,
+                              size: 12, color: AppColors.textSecondaryLight),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(

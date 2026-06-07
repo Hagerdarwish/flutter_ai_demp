@@ -11,7 +11,6 @@ import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../providers/tasks_provider.dart';
 import '../../domain/entities/meeting_task.dart';
-import '../../../../app/router/route_names.dart';
 
 // --- Enum mapping helpers ---
 WidgetTaskPriority _toWidgetPriority(TaskPriority p) => switch (p) {
@@ -50,8 +49,13 @@ class _TasksPageState extends ConsumerState<TasksPage> {
             child: tasksAsync.when(
               data: (tasks) {
                 final filtered = tasks.where((t) {
-                  if (_statusFilter != null && t.status != _statusFilter) return false;
-                  if (_priorityFilter != null && t.priority != _priorityFilter) return false;
+                  if (_statusFilter != null && t.status != _statusFilter) {
+                    return false;
+                  }
+                  if (_priorityFilter != null &&
+                      t.priority != _priorityFilter) {
+                    return false;
+                  }
                   return true;
                 }).toList();
 
@@ -94,17 +98,35 @@ class _TasksPageState extends ConsumerState<TasksPage> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             scrollDirection: Axis.horizontal,
             children: [
-              FilterChip(label: const Text('All'), selected: _statusFilter == null,
-                  onSelected: (_) => setState(() => _statusFilter = null)),
+              _filterChip(
+                label: 'All',
+                selected: _statusFilter == null,
+                onSelected: (_) => setState(() => _statusFilter = null),
+              ),
               const SizedBox(width: 8),
-              FilterChip(label: const Text('Pending'), selected: _statusFilter == TaskStatus.pending,
-                  onSelected: (_) => setState(() => _statusFilter = TaskStatus.pending)),
+              _filterChip(
+                label: 'Pending',
+                selected: _statusFilter == TaskStatus.pending,
+                selectedColor: AppColors.neutralForeground,
+                onSelected: (_) =>
+                    setState(() => _statusFilter = TaskStatus.pending),
+              ),
               const SizedBox(width: 8),
-              FilterChip(label: const Text('In Progress'), selected: _statusFilter == TaskStatus.inProgress,
-                  onSelected: (_) => setState(() => _statusFilter = TaskStatus.inProgress)),
+              _filterChip(
+                label: 'In Progress',
+                selected: _statusFilter == TaskStatus.inProgress,
+                selectedColor: AppColors.infoForeground,
+                onSelected: (_) =>
+                    setState(() => _statusFilter = TaskStatus.inProgress),
+              ),
               const SizedBox(width: 8),
-              FilterChip(label: const Text('Completed'), selected: _statusFilter == TaskStatus.completed,
-                  onSelected: (_) => setState(() => _statusFilter = TaskStatus.completed)),
+              _filterChip(
+                label: 'Completed',
+                selected: _statusFilter == TaskStatus.completed,
+                selectedColor: AppColors.successForeground,
+                onSelected: (_) =>
+                    setState(() => _statusFilter = TaskStatus.completed),
+              ),
             ],
           ),
         ),
@@ -114,25 +136,73 @@ class _TasksPageState extends ConsumerState<TasksPage> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
             scrollDirection: Axis.horizontal,
             children: [
-              FilterChip(label: const Text('Any Priority'), selected: _priorityFilter == null,
-                  onSelected: (_) => setState(() => _priorityFilter = null)),
+              _filterChip(
+                label: 'Any Priority',
+                selected: _priorityFilter == null,
+                onSelected: (_) => setState(() => _priorityFilter = null),
+              ),
               const SizedBox(width: 8),
-              FilterChip(label: const Text('High'), selected: _priorityFilter == TaskPriority.high,
-                  selectedColor: AppColors.error.withValues(alpha: 0.15),
-                  onSelected: (_) => setState(() => _priorityFilter = TaskPriority.high)),
+              _filterChip(
+                label: 'High',
+                selected: _priorityFilter == TaskPriority.high,
+                selectedColor: AppColors.errorForeground,
+                onSelected: (_) =>
+                    setState(() => _priorityFilter = TaskPriority.high),
+              ),
               const SizedBox(width: 8),
-              FilterChip(label: const Text('Medium'), selected: _priorityFilter == TaskPriority.medium,
-                  selectedColor: AppColors.warning.withValues(alpha: 0.15),
-                  onSelected: (_) => setState(() => _priorityFilter = TaskPriority.medium)),
+              _filterChip(
+                label: 'Medium',
+                selected: _priorityFilter == TaskPriority.medium,
+                selectedColor: AppColors.warningForeground,
+                onSelected: (_) =>
+                    setState(() => _priorityFilter = TaskPriority.medium),
+              ),
               const SizedBox(width: 8),
-              FilterChip(label: const Text('Low'), selected: _priorityFilter == TaskPriority.low,
-                  selectedColor: AppColors.success.withValues(alpha: 0.15),
-                  onSelected: (_) => setState(() => _priorityFilter = TaskPriority.low)),
+              _filterChip(
+                label: 'Low',
+                selected: _priorityFilter == TaskPriority.low,
+                selectedColor: AppColors.successForeground,
+                onSelected: (_) =>
+                    setState(() => _priorityFilter = TaskPriority.low),
+              ),
             ],
           ),
         ),
         const Divider(height: 1),
       ],
+    );
+  }
+
+  Widget _filterChip({
+    required String label,
+    required bool selected,
+    required ValueChanged<bool> onSelected,
+    Color? selectedColor,
+  }) {
+    final theme = Theme.of(context);
+    final selectedBackground = selectedColor ?? AppColors.primary;
+    final foreground =
+        selected ? Colors.white : theme.colorScheme.onSurfaceVariant;
+
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: onSelected,
+      showCheckmark: selected,
+      selectedColor: selectedBackground,
+      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+      checkmarkColor: foreground,
+      labelStyle: AppTextStyles.labelMedium(context).copyWith(
+        color: foreground,
+        fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+        letterSpacing: 0,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      side: BorderSide(
+        color: selected ? selectedBackground : theme.colorScheme.outline,
+      ),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
     );
   }
 }
@@ -157,9 +227,13 @@ class _TaskCard extends ConsumerWidget {
                   child: Text(
                     task.title,
                     style: AppTextStyles.titleSmall(context).copyWith(
-                      decoration: isCompleted ? TextDecoration.lineThrough : null,
+                      decoration:
+                          isCompleted ? TextDecoration.lineThrough : null,
                       color: isCompleted
-                          ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)
+                          ? Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.5)
                           : null,
                     ),
                     maxLines: 2,
@@ -170,7 +244,6 @@ class _TaskCard extends ConsumerWidget {
                 PriorityChip(priority: _toWidgetPriority(task.priority)),
               ],
             ),
-
             if (task.description.isNotEmpty) ...[
               const SizedBox(height: 6),
               Text(task.description,
@@ -178,19 +251,25 @@ class _TaskCard extends ConsumerWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis),
             ],
-
             const SizedBox(height: 10),
-
             Row(
               children: [
                 if (task.assignee.isNotEmpty) ...[
-                  const Icon(Icons.person_outline_rounded, size: 14, color: AppColors.textSecondaryLight),
+                  Icon(
+                    Icons.person_outline_rounded,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 4),
                   Text(task.assignee, style: AppTextStyles.labelSmall(context)),
                   const SizedBox(width: 12),
                 ],
                 if (task.dueDate.isNotEmpty) ...[
-                  const Icon(Icons.event_rounded, size: 14, color: AppColors.textSecondaryLight),
+                  Icon(
+                    Icons.event_rounded,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 4),
                   Text(DateFormatter.formatDueDate(task.dueDate),
                       style: AppTextStyles.labelSmall(context)),
@@ -199,18 +278,18 @@ class _TaskCard extends ConsumerWidget {
                 TaskStatusChip(status: _toWidgetTaskStatus(task.status)),
               ],
             ),
-
             const SizedBox(height: 12),
             const Divider(height: 1),
             const SizedBox(height: 8),
-
             Row(
               children: [
                 if (task.meetingId.isNotEmpty)
                   TextButton.icon(
                     icon: const Icon(Icons.meeting_room_rounded, size: 14),
-                    label: const Text('Meeting', style: TextStyle(fontSize: 12)),
-                    onPressed: () => context.push('/meetings/${task.meetingId}'),
+                    label:
+                        const Text('Meeting', style: TextStyle(fontSize: 12)),
+                    onPressed: () =>
+                        context.push('/meetings/${task.meetingId}'),
                   ),
                 const Spacer(),
                 if (task.status == TaskStatus.pending)
@@ -225,15 +304,20 @@ class _TaskCard extends ConsumerWidget {
                     onPressed: () => ref
                         .read(tasksNotifierProvider.notifier)
                         .updateStatus(task.id, TaskStatus.completed),
-                    style: TextButton.styleFrom(foregroundColor: AppColors.success),
-                    child: const Text('Complete', style: TextStyle(fontSize: 12)),
+                    style: TextButton.styleFrom(
+                        foregroundColor: AppColors.success),
+                    child:
+                        const Text('Complete', style: TextStyle(fontSize: 12)),
                   ),
                 if (task.status == TaskStatus.completed)
                   TextButton(
                     onPressed: () => ref
                         .read(tasksNotifierProvider.notifier)
                         .updateStatus(task.id, TaskStatus.pending),
-                    style: TextButton.styleFrom(foregroundColor: AppColors.textSecondaryLight),
+                    style: TextButton.styleFrom(
+                      foregroundColor:
+                          Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                     child: const Text('Reopen', style: TextStyle(fontSize: 12)),
                   ),
               ],
