@@ -7,6 +7,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../../app/router/route_names.dart';
 import '../providers/auth_provider.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
@@ -51,6 +52,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       if (next.hasError) {
         final msg = next.error.toString();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+        return;
+      }
+
+      if (next.hasValue && next.value != null) {
+        context.go(RouteNames.home);
       }
     });
 

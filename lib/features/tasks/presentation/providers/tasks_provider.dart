@@ -3,7 +3,8 @@ import '../../data/repositories/tasks_repository_impl.dart';
 import '../../domain/entities/meeting_task.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 
-final tasksRepositoryProvider = Provider<TasksRepository>((_) => TasksRepository());
+final tasksRepositoryProvider =
+    Provider<TasksRepository>((_) => TasksRepository());
 
 final tasksProvider = StreamProvider<List<MeetingTask>>((ref) {
   final user = ref.watch(currentUserProvider);
@@ -26,9 +27,29 @@ class TasksNotifier extends StateNotifier<AsyncValue<void>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  Future<void> updateAssignee({
+    required String taskId,
+    required String meetingId,
+    required String assignee,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repo.updateTaskAssignee(
+        userId: _userId,
+        taskId: taskId,
+        meetingId: meetingId,
+        assignee: assignee,
+      );
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
 }
 
-final tasksNotifierProvider = StateNotifierProvider<TasksNotifier, AsyncValue<void>>((ref) {
+final tasksNotifierProvider =
+    StateNotifierProvider<TasksNotifier, AsyncValue<void>>((ref) {
   final user = ref.watch(currentUserProvider);
   return TasksNotifier(ref.watch(tasksRepositoryProvider), user?.id ?? '');
 });

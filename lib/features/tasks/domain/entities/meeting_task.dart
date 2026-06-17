@@ -64,15 +64,21 @@ class MeetingTask {
     );
   }
 
-  factory MeetingTask.fromAiMap(Map<String, dynamic> map, {required String meetingId, String meetingTitle = ''}) {
+  factory MeetingTask.fromAiMap(
+    Map<String, dynamic> map, {
+    required String meetingId,
+    String meetingTitle = '',
+    String defaultAssignee = '',
+  }) {
     final now = DateTime.now();
+    final aiAssignee = (map['assignee'] as String? ?? '').trim();
     return MeetingTask(
       id: '',
       meetingId: meetingId,
       meetingTitle: meetingTitle,
       title: map['title'] as String? ?? '',
       description: map['description'] as String? ?? '',
-      assignee: map['assignee'] as String? ?? '',
+      assignee: aiAssignee.isNotEmpty ? aiAssignee : defaultAssignee.trim(),
       dueDate: map['dueDate'] as String? ?? '',
       priority: _priorityFromString(map['priority'] as String? ?? 'medium'),
       status: TaskStatus.pending,
@@ -95,11 +101,13 @@ class MeetingTask {
       };
 
   static TaskPriority _priorityFromString(String s) {
-    return TaskPriority.values.firstWhere((e) => e.name == s.toLowerCase(), orElse: () => TaskPriority.medium);
+    return TaskPriority.values.firstWhere((e) => e.name == s.toLowerCase(),
+        orElse: () => TaskPriority.medium);
   }
 
   static TaskStatus _statusFromString(String s) {
     if (s == 'inProgress') return TaskStatus.inProgress;
-    return TaskStatus.values.firstWhere((e) => e.name == s.toLowerCase(), orElse: () => TaskStatus.pending);
+    return TaskStatus.values.firstWhere((e) => e.name == s.toLowerCase(),
+        orElse: () => TaskStatus.pending);
   }
 }

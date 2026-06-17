@@ -17,6 +17,7 @@ class Meeting {
   final String detailedSummary;
   final List<String> minutesOfMeeting;
   final List<String> participants;
+  final Map<String, String> participantEmails;
   final List<String> followUps;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -35,6 +36,7 @@ class Meeting {
     this.detailedSummary = '',
     this.minutesOfMeeting = const [],
     this.participants = const [],
+    this.participantEmails = const {},
     this.followUps = const [],
     required this.createdAt,
     required this.updatedAt,
@@ -48,6 +50,7 @@ class Meeting {
     String? detailedSummary,
     List<String>? minutesOfMeeting,
     List<String>? participants,
+    Map<String, String>? participantEmails,
     List<String>? followUps,
     DateTime? processedAt,
   }) {
@@ -64,6 +67,7 @@ class Meeting {
       detailedSummary: detailedSummary ?? this.detailedSummary,
       minutesOfMeeting: minutesOfMeeting ?? this.minutesOfMeeting,
       participants: participants ?? this.participants,
+      participantEmails: participantEmails ?? this.participantEmails,
       followUps: followUps ?? this.followUps,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
@@ -77,15 +81,20 @@ class Meeting {
       id: doc.id,
       userId: data['userId'] as String? ?? '',
       title: data['title'] as String? ?? 'Untitled Meeting',
-      sourceType: data['sourceType'] == 'link' ? MeetingSourceType.link : MeetingSourceType.file,
+      sourceType: data['sourceType'] == 'link'
+          ? MeetingSourceType.link
+          : MeetingSourceType.file,
       sourceName: data['sourceName'] as String? ?? '',
       sourceUrl: data['sourceUrl'] as String? ?? '',
       fileType: data['fileType'] as String? ?? '',
       status: _statusFromString(data['status'] as String? ?? 'draft'),
       shortSummary: data['shortSummary'] as String? ?? '',
       detailedSummary: data['detailedSummary'] as String? ?? '',
-      minutesOfMeeting: List<String>.from(data['minutesOfMeeting'] as List? ?? []),
+      minutesOfMeeting:
+          List<String>.from(data['minutesOfMeeting'] as List? ?? []),
       participants: List<String>.from(data['participants'] as List? ?? []),
+      participantEmails: Map<String, String>.from(
+          data['participantEmails'] as Map? ?? const {}),
       followUps: List<String>.from(data['followUps'] as List? ?? []),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -105,13 +114,16 @@ class Meeting {
         'detailedSummary': detailedSummary,
         'minutesOfMeeting': minutesOfMeeting,
         'participants': participants,
+        'participantEmails': participantEmails,
         'followUps': followUps,
         'createdAt': Timestamp.fromDate(createdAt),
         'updatedAt': Timestamp.fromDate(updatedAt),
-        if (processedAt != null) 'processedAt': Timestamp.fromDate(processedAt!),
+        if (processedAt != null)
+          'processedAt': Timestamp.fromDate(processedAt!),
       };
 
   static MeetingStatus _statusFromString(String s) {
-    return MeetingStatus.values.firstWhere((e) => e.name == s, orElse: () => MeetingStatus.draft);
+    return MeetingStatus.values
+        .firstWhere((e) => e.name == s, orElse: () => MeetingStatus.draft);
   }
 }

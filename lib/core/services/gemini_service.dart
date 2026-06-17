@@ -35,6 +35,14 @@ IMPORTANT LANGUAGE RULE:
 - If the meeting is in English, respond in English.
 - Never translate; always match the meeting language.
 
+IMPORTANT TASK ASSIGNMENT RULE:
+- Detect every person mentioned in the meeting and include them in "participants".
+- For every action item or task, assign it to exactly one person or team in the "assignee" field whenever the meeting gives enough evidence.
+- If the meeting says that a person will do something, that person must be the assignee for that task.
+- Do not leave "assignee" empty if a responsible person is mentioned anywhere near the task.
+- Keep tasks separated by owner. If Ahmed has 2 tasks and Sara has 1 task, return 3 task objects with the correct assignee on each one.
+- Only leave "assignee" empty when the responsible person is truly unknown.
+
 Do not include markdown.
 Do not include explanations outside JSON.
 
@@ -68,9 +76,11 @@ If any value is unknown, use an empty string or empty array.
   @override
   Future<Map<String, dynamic>> processMeetingFile(File file) async {
     try {
-      dev.log('[GeminiService] Processing file: ${file.path}', name: 'MeetFlow');
+      dev.log('[GeminiService] Processing file: ${file.path}',
+          name: 'MeetFlow');
       final bytes = await file.readAsBytes();
-      dev.log('[GeminiService] File size: ${bytes.length} bytes', name: 'MeetFlow');
+      dev.log('[GeminiService] File size: ${bytes.length} bytes',
+          name: 'MeetFlow');
       final mimeType = _getMimeType(file.path);
       dev.log('[GeminiService] MIME type: $mimeType', name: 'MeetFlow');
 
@@ -84,17 +94,21 @@ If any value is unknown, use an empty string or empty array.
       dev.log('[GeminiService] Sending to Gemini API...', name: 'MeetFlow');
       final response = await _model.generateContent(content);
       final text = response.text;
-      dev.log('[GeminiService] Gemini response length: ${text?.length ?? 0}', name: 'MeetFlow');
+      dev.log('[GeminiService] Gemini response length: ${text?.length ?? 0}',
+          name: 'MeetFlow');
 
       if (text == null || text.isEmpty) {
-        throw AIException(message: 'Gemini returned an empty response. The file may be too large or unsupported.');
+        throw AIException(
+            message:
+                'Gemini returned an empty response. The file may be too large or unsupported.');
       }
 
       return JsonParser.parseMeetingResult(text);
     } on AIException {
       rethrow;
     } catch (e) {
-      dev.log('[GeminiService] ERROR processing file: $e', name: 'MeetFlow', error: e);
+      dev.log('[GeminiService] ERROR processing file: $e',
+          name: 'MeetFlow', error: e);
       final msg = _humanizeError(e);
       throw AIException(message: msg, originalError: e);
     }
@@ -105,22 +119,29 @@ If any value is unknown, use an empty string or empty array.
     try {
       dev.log('[GeminiService] Processing URL: $url', name: 'MeetFlow');
       final response = await http.get(Uri.parse(url));
-      dev.log('[GeminiService] HTTP status: ${response.statusCode}', name: 'MeetFlow');
+      dev.log('[GeminiService] HTTP status: ${response.statusCode}',
+          name: 'MeetFlow');
 
       if (response.statusCode != 200) {
-        throw AIException(message: 'Could not fetch content from URL (HTTP ${response.statusCode}).');
+        throw AIException(
+            message:
+                'Could not fetch content from URL (HTTP ${response.statusCode}).');
       }
 
       final contentType = response.headers['content-type'] ?? 'text/plain';
-      final isTextContent = contentType.contains('text') || contentType.contains('json');
+      final isTextContent =
+          contentType.contains('text') || contentType.contains('json');
 
       if (isTextContent) {
         final content = [
-          Content.text('$_systemPrompt\n\nMeeting transcript:\n${response.body}'),
+          Content.text(
+              '$_systemPrompt\n\nMeeting transcript:\n${response.body}'),
         ];
         final aiResponse = await _model.generateContent(content);
         final text = aiResponse.text;
-        if (text == null || text.isEmpty) throw AIException(message: 'Gemini returned empty response.');
+        if (text == null || text.isEmpty) {
+          throw AIException(message: 'Gemini returned empty response.');
+        }
         return JsonParser.parseMeetingResult(text);
       } else {
         final mimeType = _mimeFromContentType(contentType);
@@ -133,13 +154,16 @@ If any value is unknown, use an empty string or empty array.
         ];
         final aiResponse = await _model.generateContent(content);
         final text = aiResponse.text;
-        if (text == null || text.isEmpty) throw AIException(message: 'Gemini returned empty response.');
+        if (text == null || text.isEmpty) {
+          throw AIException(message: 'Gemini returned empty response.');
+        }
         return JsonParser.parseMeetingResult(text);
       }
     } on AIException {
       rethrow;
     } catch (e) {
-      dev.log('[GeminiService] ERROR processing URL: $e', name: 'MeetFlow', error: e);
+      dev.log('[GeminiService] ERROR processing URL: $e',
+          name: 'MeetFlow', error: e);
       final msg = _humanizeError(e);
       throw AIException(message: msg, originalError: e);
     }
@@ -148,13 +172,17 @@ If any value is unknown, use an empty string or empty array.
   /// Converts raw exceptions into human-readable messages.
   String _humanizeError(Object e) {
     final str = e.toString().toLowerCase();
-    if (str.contains('api_key') || str.contains('api key') || str.contains('invalid_api_key')) {
+    if (str.contains('api_key') ||
+        str.contains('api key') ||
+        str.contains('invalid_api_key')) {
       return 'Invalid Gemini API key. Check your Firebase AI Logic setup in the Firebase Console.';
     }
     if (str.contains('quota') || str.contains('resource_exhausted')) {
       return 'Gemini API quota exceeded. Try again later or check your billing.';
     }
-    if (str.contains('unable to resolve host') || str.contains('socketexception') || str.contains('network')) {
+    if (str.contains('unable to resolve host') ||
+        str.contains('socketexception') ||
+        str.contains('network')) {
       return 'No internet connection. Connect your device/emulator to the internet and try again.';
     }
     if (str.contains('timeout')) {
@@ -188,8 +216,12 @@ If any value is unknown, use an empty string or empty array.
   }
 
   String _mimeFromContentType(String contentType) {
-    if (contentType.contains('audio/')) return contentType.split(';').first.trim();
-    if (contentType.contains('video/')) return contentType.split(';').first.trim();
+    if (contentType.contains('audio/')) {
+      return contentType.split(';').first.trim();
+    }
+    if (contentType.contains('video/')) {
+      return contentType.split(';').first.trim();
+    }
     return 'application/octet-stream';
   }
 }

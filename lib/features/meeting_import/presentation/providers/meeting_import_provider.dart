@@ -10,7 +10,15 @@ import '../../../meetings/domain/entities/meeting.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../meetings/presentation/providers/meetings_provider.dart';
 
-enum ImportStep { idle, pickingFile, uploading, processing, saving, done, error }
+enum ImportStep {
+  idle,
+  pickingFile,
+  uploading,
+  processing,
+  saving,
+  done,
+  error
+}
 
 class ImportState {
   final ImportStep step;
@@ -50,17 +58,20 @@ class MeetingImportNotifier extends StateNotifier<ImportState> {
   final LinkValidationService _linkValidator;
   final MeetingsRepository _meetings;
   final String _userId;
+  final String _userName;
   MeetingImportNotifier({
     required GeminiService gemini,
     required FilePickerService filePicker,
     required LinkValidationService linkValidator,
     required MeetingsRepository meetings,
     required String userId,
+    required String userName,
   })  : _gemini = gemini,
         _filePicker = filePicker,
         _linkValidator = linkValidator,
         _meetings = meetings,
         _userId = userId,
+        _userName = userName,
         super(const ImportState());
 
   Future<File?> pickFile() async {
@@ -95,7 +106,8 @@ class MeetingImportNotifier extends StateNotifier<ImportState> {
     required String? date,
   }) async {
     if (_userId.isEmpty) {
-      state = ImportState(step: ImportStep.error, errorMessage: 'Not logged in.');
+      state =
+          ImportState(step: ImportStep.error, errorMessage: 'Not logged in.');
       return;
     }
 
@@ -115,7 +127,9 @@ class MeetingImportNotifier extends StateNotifier<ImportState> {
         sourceName: fileName,
         fileType: fileExt,
         status: MeetingStatus.processing,
-        createdAt: date != null ? DateTime.tryParse(date) ?? DateTime.now() : DateTime.now(),
+        createdAt: date != null
+            ? DateTime.tryParse(date) ?? DateTime.now()
+            : DateTime.now(),
         updatedAt: DateTime.now(),
       );
       meetingId = await _meetings.createDraftMeeting(draft);
@@ -131,6 +145,7 @@ class MeetingImportNotifier extends StateNotifier<ImportState> {
         meetingId: meetingId,
         aiResult: aiResult,
         meetingTitle: meetingTitle,
+        defaultTaskAssignee: _userName,
       );
 
       state = ImportState(step: ImportStep.done, createdMeetingId: meetingId);
@@ -138,14 +153,16 @@ class MeetingImportNotifier extends StateNotifier<ImportState> {
       // Mark meeting as failed only if we have a valid ID
       if (meetingId != null && meetingId.isNotEmpty) {
         try {
-          await _meetings.markMeetingFailed(userId: _userId, meetingId: meetingId);
+          await _meetings.markMeetingFailed(
+              userId: _userId, meetingId: meetingId);
         } catch (_) {}
       }
       state = ImportState(step: ImportStep.error, errorMessage: e.message);
     } catch (e) {
       if (meetingId != null && meetingId.isNotEmpty) {
         try {
-          await _meetings.markMeetingFailed(userId: _userId, meetingId: meetingId);
+          await _meetings.markMeetingFailed(
+              userId: _userId, meetingId: meetingId);
         } catch (_) {}
       }
       state = ImportState(
@@ -163,12 +180,14 @@ class MeetingImportNotifier extends StateNotifier<ImportState> {
     required String? date,
   }) async {
     if (_userId.isEmpty) {
-      state = ImportState(step: ImportStep.error, errorMessage: 'Not logged in.');
+      state =
+          ImportState(step: ImportStep.error, errorMessage: 'Not logged in.');
       return;
     }
 
     final sourceName = _linkValidator.getSourceName(url);
-    final meetingTitle = title.trim().isNotEmpty ? title.trim() : 'Meeting from $sourceName';
+    final meetingTitle =
+        title.trim().isNotEmpty ? title.trim() : 'Meeting from $sourceName';
     String? meetingId;
 
     try {
@@ -181,7 +200,9 @@ class MeetingImportNotifier extends StateNotifier<ImportState> {
         sourceName: sourceName,
         sourceUrl: url,
         status: MeetingStatus.processing,
-        createdAt: date != null ? DateTime.tryParse(date) ?? DateTime.now() : DateTime.now(),
+        createdAt: date != null
+            ? DateTime.tryParse(date) ?? DateTime.now()
+            : DateTime.now(),
         updatedAt: DateTime.now(),
       );
       meetingId = await _meetings.createDraftMeeting(draft);
@@ -195,16 +216,23 @@ class MeetingImportNotifier extends StateNotifier<ImportState> {
         meetingId: meetingId,
         aiResult: aiResult,
         meetingTitle: meetingTitle,
+        defaultTaskAssignee: _userName,
       );
       state = ImportState(step: ImportStep.done, createdMeetingId: meetingId);
     } on AIException catch (e) {
       if (meetingId != null && meetingId.isNotEmpty) {
-        try { await _meetings.markMeetingFailed(userId: _userId, meetingId: meetingId); } catch (_) {}
+        try {
+          await _meetings.markMeetingFailed(
+              userId: _userId, meetingId: meetingId);
+        } catch (_) {}
       }
       state = ImportState(step: ImportStep.error, errorMessage: e.message);
     } catch (e) {
       if (meetingId != null && meetingId.isNotEmpty) {
-        try { await _meetings.markMeetingFailed(userId: _userId, meetingId: meetingId); } catch (_) {}
+        try {
+          await _meetings.markMeetingFailed(
+              userId: _userId, meetingId: meetingId);
+        } catch (_) {}
       }
       state = ImportState(
         step: ImportStep.error,
@@ -218,7 +246,8 @@ class MeetingImportNotifier extends StateNotifier<ImportState> {
   void reset() => state = const ImportState();
 }
 
-final meetingImportProvider = StateNotifierProvider<MeetingImportNotifier, ImportState>((ref) {
+final meetingImportProvider =
+    StateNotifierProvider<MeetingImportNotifier, ImportState>((ref) {
   final user = ref.watch(currentUserProvider);
   return MeetingImportNotifier(
     gemini: GeminiServiceImpl(),
@@ -226,5 +255,6 @@ final meetingImportProvider = StateNotifierProvider<MeetingImportNotifier, Impor
     linkValidator: const LinkValidationService(),
     meetings: ref.watch(meetingsRepositoryProvider),
     userId: user?.id ?? '',
+    userName: user?.name ?? '',
   );
 });
