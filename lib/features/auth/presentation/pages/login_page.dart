@@ -49,12 +49,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(err.toString().replaceAll('AuthException(message: ', '').replaceAll(')', ''))),
         );
-        return;
       }
-
-      if (next.hasValue && next.value != null) {
-        context.go(RouteNames.home);
-      }
+      // Navigation is handled by the router's redirect + refreshListenable.
     });
 
     return Scaffold(

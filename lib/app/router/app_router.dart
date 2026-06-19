@@ -14,8 +14,34 @@ import '../../features/tasks/presentation/pages/tasks_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  return GoRouter(
+  // A ChangeNotifier that pings GoRouter whenever auth state changes.
+  final notifier = _AuthChangeNotifier(ref);
+
+  final router = GoRouter(
     initialLocation: RouteNames.splash,
+    refreshListenable: notifier,
+    redirect: (context, state) {
+      final authState = ref.read(firebaseAuthUserProvider);
+      final isLoading = authState.isLoading;
+      final isLoggedIn = authState.valueOrNull != null;
+
+      final location = state.uri.path;
+      final isSplash = location == RouteNames.splash;
+      final isAuthRoute = location == RouteNames.login ||
+          location == RouteNames.register ||
+          location == RouteNames.forgotPassword;
+
+      if (isSplash) {
+        if (isLoading) return null; // Stay on splash while auth resolves
+        return isLoggedIn ? RouteNames.home : RouteNames.login;
+      }
+
+      if (isLoading) return null;
+
+      if (isLoggedIn && isAuthRoute) return RouteNames.home;
+      if (!isLoggedIn && !isAuthRoute) return RouteNames.login;
+      return null;
+    },
     routes: [
       // Splash — handles its own navigation based on auth state
       GoRoute(
@@ -77,7 +103,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       body: Center(child: Text('Page not found: ${state.error}')),
     ),
   );
+
+  ref.onDispose(notifier.dispose);
+  return router;
 });
+
+/// Bridges Riverpod's auth stream into a [ChangeNotifier] so GoRouter
+/// re-evaluates its redirect whenever auth state changes.
+class _AuthChangeNotifier extends ChangeNotifier {
+  _AuthChangeNotifier(Ref ref) {
+    ref.listen<AsyncValue>(firebaseAuthUserProvider, (_, __) {
+      notifyListeners();
+    });
+  }
+}
 
 /// Splash page that listens to the Firebase auth stream directly
 /// and navigates as soon as auth state is known.
@@ -86,32 +125,9 @@ class SplashPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Listen to the simple Firebase auth stream (fast, no Firestore fetch)
-    ref.listen<AsyncValue>(firebaseAuthUserProvider, (_, next) {
-      next.whenData((user) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!context.mounted) return;
-          if (user != null) {
-            context.go(RouteNames.home);
-          } else {
-            context.go(RouteNames.login);
-          }
-        });
-      });
-    });
-
-    // Also handle the case auth is already resolved on first build
-    final authState = ref.watch(firebaseAuthUserProvider);
-    authState.whenData((user) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) return;
-        if (user != null) {
-          context.go(RouteNames.home);
-        } else {
-          context.go(RouteNames.login);
-        }
-      });
-    });
+    // The router's redirect + refreshListenable handles navigation away from
+    // splash once auth resolves. Just show the loading UI here.
+    ref.watch(firebaseAuthUserProvider); // keep provider alive
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),

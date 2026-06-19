@@ -52,12 +52,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       if (next.hasError) {
         final msg = next.error.toString();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-        return;
       }
-
-      if (next.hasValue && next.value != null) {
-        context.go(RouteNames.home);
-      }
+      // Navigation is handled by the router's redirect + refreshListenable.
     });
 
     return Scaffold(
