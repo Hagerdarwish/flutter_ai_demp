@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeetFlow AI — Graduation Project Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.3);
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-highlight: #38bdf8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --transition-speed: 0.5s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(99, 102, 241, 0.12) 0px, transparent 50%);
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+
+        /* Progress Bar */
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            box-shadow: 0 0 8px var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        /* App Layout */
+        .app-container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Sidebar Navigation Drawer */
+        .sidebar {
+            width: 280px;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.95);
+            border-right: 1px solid var(--border-color);
+            backdrop-filter: blur(16px);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 10px;
+            position: absolute;
+            left: -280px;
+            top: 0;
+            z-index: 90;
+            transition: left 0.3s ease;
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-left: 10px;
+            color: var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-sidebar-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .sidebar-menu {
+            overflow-y: auto;
+            flex-grow: 1;
+            list-style: none;
+        }
+
+        .sidebar-item {
+            padding: 10px 12px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-item:hover, .sidebar-item.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .sidebar-item.active {
+            border-left: 3px solid var(--primary);
+            padding-left: 9px;
+            font-weight: 600;
+        }
+
+        .sidebar-item-num {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 11px;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .sidebar-item.active .sidebar-item-num {
+            background: var(--primary);
+            color: var(--bg-color);
+        }
+
+        /* Main Slide Viewport */
+        .presentation-viewport {
+            flex-grow: 1;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Slide Shell */
+        .slide {
+            position: absolute;
+            width: 90%;
+            height: 82%;
+            max-width: 1200px;
+            max-height: 700px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+            pointer-events: none;
+            transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        /* Slide Content Styles */
+        h1, h2, h3 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slide-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .content-body {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* Grid layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        /* Card Styles */
+        .g-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .g-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(56, 189, 248, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Bullet lists */
+        ul.custom-bullets {
+            list-style: none;
+        }
+
+        ul.custom-bullets li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        ul.custom-bullets li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        /* Title Slide Custom styling */
+        .title-slide {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(8, 12, 21, 0.95));
+            border: 2px solid rgba(56, 189, 248, 0.15);
+        }
+
+        .title-project-badge {
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            color: var(--bg-color);
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 20px;
+            font-family: 'Outfit', sans-serif;
+            display: inline-block;
+        }
+
+        .title-heading {
+            font-family: 'Outfit', sans-serif;
+            font-size: 40px;
+            font-weight: 800;
+            background: linear-gradient(to right, #ffffff, #93c5fd, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+            line-height: 1.2;
+            max-width: 1000px;
+            filter: drop-shadow(0 2px 8px rgba(56, 189, 248, 0.2));
+        }
+
+        .title-subheading {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            font-weight: 400;
+        }
+
+        .title-metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 30px;
+        }
+
+        .title-metadata-item {
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .title-metadata-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .title-metadata-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .title-university-label {
+            margin-top: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Table styles */
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .custom-table th {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--primary);
+            font-weight: 600;
+            text-align: left;
+            padding: 10px 14px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .custom-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .custom-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Floating Nav Controllers */
+        .floating-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(11, 15, 25, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 40px;
+            padding: 8px 18px;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+            color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .control-btn:active {
+            transform: scale(0.9);
+        }
+
+        .slide-counter {
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .slide-counter-current {
+            color: var(--primary);
+        }
+
+        /* Tabbed Diagram View */
+        .tab-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .tab-headers {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--primary);
+            color: var(--bg-color);
+            font-weight: 600;
+            border-color: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        .tab-content {
+            display: none;
+            flex-grow: 1;
+            justify-content: center;
+            align-items: center;
+            height: 420px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        .tab-content img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
+        /* Highlight classes */
+        .hl-blue { color: var(--primary); }
+        .hl-indigo { color: #818cf8; }
+        .hl-green { color: var(--success); }
+        .hl-red { color: var(--danger); }
+        .hl-yellow { color: #fbbf24; }
+
+        /* Keyboards Tips Badge */
+        .key-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--primary);
+        }
+
+        /* INTERACTIVE USE CASE DIAGRAM STYLING (matching the report exactly) */
+        .uc-diagram-box {
+            background: #ffffff !important;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            padding: 10px;
+            position: relative;
+            width: 700px;
+            height: 400px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+
+        .uc-diagram-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 700px;
+            height: 400px;
+            z-index: 1;
+        }
+
+        .uc-node {
+            position: absolute;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .uc-actor {
+            width: 90px;
+            height: 70px;
+        }
+
+        .uc-actor-icon {
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+
+        .uc-actor-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: #334155;
+            text-align: center;
+        }
+
+        .uc-system-boundary {
+            position: absolute;
+            border: 2px solid #94a3b8;
+            border-radius: 12px;
+            background: #f8fafc;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.01);
+            z-index: 0;
+        }
+
+        .uc-system-title {
+            position: absolute;
+            top: -8px;
+            left: 15px;
+            background: #ffffff;
+            padding: 0 4px;
+            font-size: 9px;
+            font-weight: 700;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .uc-bubble {
+            position: absolute;
+            height: 26px;
+            line-height: 1.1;
+            border-radius: 13px;
+            background: #f0f6ff;
+            border: 1.5px solid #3b82f6;
+            color: #1d4ed8;
+            font-size: 8.5px;
+            font-weight: 600;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            box-sizing: border-box;
+            z-index: 2;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+
+        .uc-bubble:hover {
+            transform: scale(1.05);
+            background: #dbeafe;
+        }
+
+        .uc-system-uc {
+            background: #f0fdf4;
+            border: 1.5px solid #10b981;
+            color: #047857;
+        }
+
+        .uc-system-uc:hover {
+            background: #dcfce7;
+        }
+
+        /* Code block stylings */
+        pre.code-glow {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #e2e8f0;
+            text-align: left;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        pre.code-glow::after {
+            content: "JSON SCHEMA";
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            font-size: 8px;
+            font-weight: 700;
+            color: var(--primary);
+            background: rgba(56, 189, 248, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- App Shell Layout -->
+    <div class="app-container">
+
+        <!-- Sidebar (Hidden Drawer) -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span>Slides Menu</span>
+                <button class="close-sidebar-btn" id="closeSidebarBtn">&times;</button>
+            </div>
+            <ul class="sidebar-menu" id="sidebarMenu">
+                <!-- Javascript populated -->
+            </ul>
+        </div>
+
+        <!-- Slide Presentation Port -->
+        <div class="presentation-viewport">
+
+            <!-- SLIDE 1: TITLE SLIDE -->
+            <div class="slide active title-slide" data-title="Title Page">
+                <div class="title-project-badge">Graduation Project Presentation</div>
+                <h1 class="title-heading">MeetFlow AI: An AI-Powered Mobile Application for Automated Meeting Documentation and Task Tracking</h1>
+                <p class="title-subheading">A Cross-Platform Flutter Application Utilizing Multimodal Generative AI for Documentation Pipelines</p>
+                
+                <div class="title-metadata-grid">
+                    <div class="title-metadata-item">
+                        <span class="title-metadata-label">Student</span>
+                        <span class="title-metadata-value">Hager Elsayed Darwish</span>
+                        <span class="title-metadata-label" style="font-size:9px; margin-top:2px;">ID: 202401385</span>
+                    </div>
+                    <div class="title-metadata-item">
+                        <span class="title-metadata-label">Supervisor</span>
+                        <span class="title-metadata-value hl-blue">Dr Mager mamdouh</span>
+                    </div>
+                    <div class="title-metadata-item">
+                        <span class="title-metadata-label">Program & Track</span>
+                        <span class="title-metadata-value" style="font-size:14px;">Master of Software Engineering</span>
+                        <span class="title-metadata-label" style="font-size:10px; margin-top:2px; text-transform:none;">Track: Software engineer</span>
+                    </div>
+                    <div class="title-metadata-item">
+                        <span class="title-metadata-label">Submission Date</span>
+                        <span class="title-metadata-value">June 7, 2026</span>
+                    </div>
+                </div>
+                <div class="title-university-label">Cairo University • Faculty of Graduate Studies for Statistical Research (FGSSR)</div>
+            </div>
+
+            <!-- SLIDE 2: AGENDA -->
+            <div class="slide" data-title="Agenda">
+                <h1>Agenda <span class="slide-subtitle">Overview of the Presentation</span></h1>
+                <div class="content-body">
+                    <div class="grid-2">
+                        <ul class="custom-bullets" style="font-size: 18px;">
+                            <li><strong class="hl-blue">01.</strong> Introduction & Problem Statement</li>
+                            <li><strong class="hl-blue">02.</strong> Project Objectives</li>
+                            <li><strong class="hl-blue">03.</strong> Proposed Solution & Technologies</li>
+                            <li><strong class="hl-blue">04.</strong> Architectural Design & UML Models</li>
+                        </ul>
+                        <ul class="custom-bullets" style="font-size: 18px;">
+                            <li><strong class="hl-blue">05.</strong> User Interface & Screenshots</li>
+                            <li><strong class="hl-blue">06.</strong> Implementation & Security Rules</li>
+                            <li><strong class="hl-blue">07.</strong> Verification, Testing & Edge Cases</li>
+                            <li><strong class="hl-blue">08.</strong> Conclusion & Future Work Roadmap</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 3: INTRODUCTION & BACKGROUND -->
+            <div class="slide" data-title="1. Introduction">
+                <h1>1. Introduction & Background <span class="slide-subtitle">Collaborative Documentation Challenges</span></h1>
+                <div class="content-body">
+                    <div class="grid-2">
+                        <div>
+                            <p style="margin-bottom: 20px; font-size: 17px;">
+                                In modern professional, academic, and business settings, **meetings are the main driver of collaborations and decisions**.
+                            </p>
+                            <p style="font-size: 17px; color: var(--text-muted);">
+                                However, capturing and acting on the information produced during these meetings remains highly inefficient.
+                            </p>
+                        </div>
+                        <div class="g-card" style="border-left: 4px solid var(--primary);">
+                            <h3 class="card-title">Traditional Documentation Flaws:</h3>
+                            <ul class="custom-bullets" style="font-size: 14px;">
+                                <li>**Inconsistent Notes:** Subjective and highly variable.</li>
+                                <li>**Time Sink:** Reviewing transcripts/audio takes hours.</li>
+                                <li>**Out of Sync:** Meeting actions are separate from tracking tools, leading to forgotten commitments.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 4: PROBLEM STATEMENT -->
+            <div class="slide" data-title="2. Problem Statement">
+                <h1>2. Problem Statement <span class="slide-subtitle">The Capture-to-Action Gap</span></h1>
+                <div class="content-body">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <p style="font-size: 22px; font-weight: 500; max-width: 800px; margin: 0 auto; line-height: 1.4;">
+                            "How can we <span class="hl-blue">automatically</span> convert raw, multilingual meeting media into <span class="hl-blue">structured, trackable action items</span> without exposing API keys?"
+                        </p>
+                    </div>
+                    <div class="grid-3">
+                        <div class="g-card">
+                            <h3 class="card-title"><span style="font-size:20px;">🔊</span> Import Complexity</h3>
+                            <p style="font-size: 13.5px; color:var(--text-muted)">Handling local audio/video uploads alongside links to cloud recordings (Drive, YouTube, etc.) seamlessly in a single app.</p>
+                        </div>
+                        <div class="g-card">
+                            <h3 class="card-title"><span style="font-size:20px;">🧠</span> AI Formatting</h3>
+                            <p style="font-size: 13.5px; color:var(--text-muted)">Instructing LLMs to reliably parse audio transcriptions into a strict, type-safe JSON schema instead of plain text.</p>
+                        </div>
+                        <div class="g-card">
+                            <h3 class="card-title"><span style="font-size:20px;">🔒</span> Client Security</h3>
+                            <p style="font-size: 13.5px; color:var(--text-muted)">Ensuring Gemini API keys are never embedded in the client APK/IPA, protecting it from reverse engineering.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 5: PROJECT OBJECTIVES -->
+            <div class="slide" data-title="3. Project Objectives">
+                <h1>3. Project Objectives <span class="slide-subtitle">Target Solutions</span></h1>
+                <div class="content-body">
+                    <div class="grid-2">
+                        <ul class="custom-bullets">
+                            <li><strong>Automated outcome parsing:</strong> Generate Summaries, chronological Minutes of Meetings, and Decisions.</li>
+                            <li><strong>Actionable task generation:</strong> Automatically extract tasks, assignees, and deadlines into a database.</li>
+                            <li><strong>Unified tracking center:</strong> Expose a global user dashboard for marking tasks complete and updating metadata.</li>
+                        </ul>
+                        <ul class="custom-bullets">
+                            <li><strong>Multimodal ingestion:</strong> Import raw MP3/MP4 files or paste public links (e.g. YouTube, cloud links).</li>
+                            <li><strong>Language preservation:</strong> Keep the source meeting language (e.g., Arabic meeting outputs Arabic documents).</li>
+                            <li><strong>Secure serverless routing:</strong> Proxy API requests securely through cloud middleware logic.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 6: PROPOSED SOLUTION -->
+            <div class="slide" data-title="4. Proposed Solution">
+                <h1>4. Proposed Solution: MeetFlow AI <span class="slide-subtitle">Technology Stack</span></h1>
+                <div class="content-body">
+                    <div class="grid-3" style="margin-bottom: 20px;">
+                        <div class="g-card" style="border-top: 3px solid var(--primary);">
+                            <div class="card-title">📱 Frontend Client</div>
+                            <p style="font-size: 13px; color:var(--text-muted); margin-bottom: 5px;">**Flutter & Dart**</p>
+                            <p style="font-size: 12.5px;">Cross-platform compiled codebase, feature-first Clean Architecture, Material 3 design widgets.</p>
+                        </div>
+                        <div class="g-card" style="border-top: 3px solid var(--accent);">
+                            <div class="card-title">☁️ Cloud Backend</div>
+                            <p style="font-size: 13px; color:var(--text-muted); margin-bottom: 5px;">**Firebase Ecosystem**</p>
+                            <p style="font-size: 12.5px;">Firebase Auth for registration, Cloud Firestore for document storage, security rules for isolation.</p>
+                        </div>
+                        <div class="g-card" style="border-top: 3px solid var(--success);">
+                            <div class="card-title">🤖 Multimodal AI</div>
+                            <p style="font-size: 13px; color:var(--text-muted); margin-bottom: 5px;">**Gemini 2.5 Flash**</p>
+                            <p style="font-size: 12.5px;">Injected via Firebase AI Logic. Secure, server-side execution of prompts returning verified JSON.</p>
+                        </div>
+                    </div>
+                    <div class="g-card" style="text-align: center;">
+                        <span class="hl-yellow">★ State Management:</span> Riverpod Notifier pattern for reactive UI updates and Navigation handled via GoRouter redirect rules.
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 7: SYSTEM ARCHITECTURE -->
+            <div class="slide" data-title="5. System Architecture">
+                <h1>5. Clean Architecture Layers <span class="slide-subtitle">Logical Code Organization</span></h1>
+                <div class="content-body">
+                    <div class="grid-2">
+                        <div class="g-card" style="padding: 15px;">
+                            <h3 class="card-title">Layer Responsibilities:</h3>
+                            <ul class="custom-bullets" style="font-size: 13px;">
+                                <li><strong class="hl-blue">Presentation:</strong> Screen widgets and State Notifiers. Completely decoupled from database libraries.</li>
+                                <li><strong class="hl-indigo">Domain:</strong> Strict model contracts (Entities), data models (parsing JSON maps), and exceptions.</li>
+                                <li><strong class="hl-green">Data:</strong> Repository implementations which fetch raw data and map it to domain models.</li>
+                            </ul>
+                        </div>
+                        <div class="g-card" style="padding: 15px; border-left: 3px solid var(--accent);">
+                            <h3 class="card-title">Data Ingestion Flow:</h3>
+                            <ol style="padding-left: 20px; font-size: 13px; color: var(--text-main);">
+                                <li style="margin-bottom: 6px;">User imports raw file &rarr; **FilePickerService** reads bytes.</li>
+                                <li style="margin-bottom: 6px;">Draft meeting created &rarr; **Cloud Firestore** triggers listener.</li>
+                                <li style="margin-bottom: 6px;">Request proxy to **Firebase AI Logic** (serverless) &rarr; **Gemini** analyzes audio.</li>
+                                <li style="margin-bottom: 6px;">Outputs strict JSON &rarr; Client receives parsed data structure.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 8: USE CASE MODEL -->
+            <div class="slide" data-title="6. Use Case Diagram">
+                <h1>6. UML Use Case Model <span class="slide-subtitle">Interactive System Boundaries</span></h1>
+                <div class="content-body">
+                    <div class="uc-diagram-box">
+                        <svg class="uc-diagram-svg" width="700" height="400">
+                            <defs>
+                                <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <path d="M 2 2 L 8 5 L 2 8" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                </marker>
+                            </defs>
+                            
+                            <!-- Symmetrical center lines -->
+                            <line x1="55" y1="180" x2="150" y2="35" stroke="#94a3b8" stroke-width="1.2" />
+                            <line x1="55" y1="180" x2="150" y2="75" stroke="#94a3b8" stroke-width="1.2" />
+                            <line x1="55" y1="180" x2="150" y2="115" stroke="#94a3b8" stroke-width="1.2" />
+                            <line x1="55" y1="180" x2="150" y2="155" stroke="#94a3b8" stroke-width="1.2" />
+                            <line x1="55" y1="180" x2="150" y2="195" stroke="#94a3b8" stroke-width="1.2" />
+                            <line x1="55" y1="180" x2="150" y2="235" stroke="#94a3b8" stroke-width="1.2" />
+                            <line x1="55" y1="180" x2="150" y2="275" stroke="#94a3b8" stroke-width="1.2" />
+                            <line x1="55" y1="180" x2="150" y2="315" stroke="#94a3b8" stroke-width="1.2" />
+                            <line x1="55" y1="180" x2="150" y2="355" stroke="#94a3b8" stroke-width="1.2" />
+
+                            <!-- Includes -->
+                            <line x1="290" y1="35" x2="402" y2="91" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arrow)" />
+                            <text x="346" y="58" font-size="7.5" fill="#2563eb" font-weight="600" text-anchor="middle">&lt;&lt;include&gt;&gt;</text>
+
+                            <line x1="290" y1="75" x2="402" y2="43" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arrow)" />
+                            <text x="346" y="55" font-size="7.5" fill="#2563eb" font-weight="600" text-anchor="middle">&lt;&lt;include&gt;&gt;</text>
+                            
+                            <line x1="290" y1="155" x2="402" y2="151" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arrow)" />
+                            <text x="346" y="147" font-size="7.5" fill="#2563eb" font-weight="600" text-anchor="middle">&lt;&lt;include&gt;&gt;</text>
+
+                            <line x1="290" y1="155" x2="402" y2="202" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arrow)" />
+                            <text x="335" y="175" font-size="7.5" fill="#2563eb" font-weight="600" text-anchor="middle">&lt;&lt;include&gt;&gt;</text>
+
+                            <line x1="290" y1="155" x2="402" y2="252" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arrow)" />
+                            <text x="330" y="200" font-size="7.5" fill="#2563eb" font-weight="600" text-anchor="middle">&lt;&lt;include&gt;&gt;</text>
+
+                            <line x1="290" y1="195" x2="402" y2="154" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arrow)" />
+                            <text x="335" y="170" font-size="7.5" fill="#2563eb" font-weight="600" text-anchor="middle">&lt;&lt;include&gt;&gt;</text>
+
+                            <line x1="290" y1="195" x2="402" y2="204" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arrow)" />
+                            <text x="346" y="195" font-size="7.5" fill="#2563eb" font-weight="600" text-anchor="middle">&lt;&lt;include&gt;&gt;</text>
+
+                            <line x1="290" y1="195" x2="402" y2="255" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arrow)" />
+                            <text x="335" y="220" font-size="7.5" fill="#2563eb" font-weight="600" text-anchor="middle">&lt;&lt;include&gt;&gt;</text>
+
+                            <line x1="290" y1="235" x2="402" y2="310" stroke="#3b82f6" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#arrow)" />
+                            <text x="346" y="270" font-size="7.5" fill="#2563eb" font-weight="600" text-anchor="middle">&lt;&lt;include&gt;&gt;</text>
+
+                            <!-- Right Actor lines -->
+                            <line x1="550" y1="41" x2="600" y2="75" stroke="#94a3b8" stroke-width="1.2" />
+                            <line x1="550" y1="95" x2="600" y2="75" stroke="#94a3b8" stroke-width="1.2" />
+                            <line x1="550" y1="259" x2="600" y2="210" stroke="#94a3b8" stroke-width="1.2" />
+                            <line x1="550" y1="315" x2="600" y2="210" stroke="#94a3b8" stroke-width="1.2" />
+                            <line x1="550" y1="151" x2="600" y2="345" stroke="#94a3b8" stroke-width="1.2" />
+                            <line x1="550" y1="205" x2="600" y2="345" stroke="#94a3b8" stroke-width="1.2" />
+                        </svg>
+
+                        <!-- Actors -->
+                        <div class="uc-node uc-actor" style="left: 10px; top: 145px;">
+                            <div class="uc-actor-icon">👤</div>
+                            <div class="uc-actor-label">Primary User</div>
+                        </div>
+                        <div class="uc-node uc-actor" style="left: 600px; top: 40px;">
+                            <div class="uc-actor-icon">🔑</div>
+                            <div class="uc-actor-label">Firebase Auth</div>
+                        </div>
+                        <div class="uc-node uc-actor" style="left: 600px; top: 175px;">
+                            <div class="uc-actor-icon">🗄️</div>
+                            <div class="uc-actor-label">Cloud Firestore</div>
+                        </div>
+                        <div class="uc-node uc-actor" style="left: 600px; top: 310px;">
+                            <div class="uc-actor-icon">🤖</div>
+                            <div class="uc-actor-label">Gemini AI</div>
+                        </div>
+
+                        <!-- System Boundary -->
+                        <div class="uc-system-boundary" style="left: 130px; width: 440px; height: 380px; top: 10px;">
+                            <div class="uc-system-title">MeetFlow AI System</div>
+                            
+                            <!-- Left Usecases -->
+                            <div class="uc-bubble" style="left: 20px; top: 12px; width: 140px;">Register Account</div>
+                            <div class="uc-bubble" style="left: 20px; top: 52px; width: 140px;">Log In</div>
+                            <div class="uc-bubble" style="left: 20px; top: 92px; width: 140px;">Reset Password</div>
+                            <div class="uc-bubble" style="left: 20px; top: 132px; width: 140px;">Import Meeting from File</div>
+                            <div class="uc-bubble" style="left: 20px; top: 172px; width: 140px;">Import Meeting from Link</div>
+                            <div class="uc-bubble hl-red" style="left: 20px; top: 212px; width: 140px; border-color:var(--danger)">Delete Meeting</div>
+                            <div class="uc-bubble" style="left: 20px; top: 252px; width: 140px;">View Meeting History</div>
+                            <div class="uc-bubble" style="left: 20px; top: 292px; width: 140px;">View Meeting Details</div>
+                            <div class="uc-bubble" style="left: 20px; top: 332px; width: 140px;">Update Task Status</div>
+                            
+                            <!-- Right System Usecases -->
+                            <div class="uc-bubble uc-system-uc" style="left: 280px; top: 18px; width: 140px;">Validate Credentials</div>
+                            <div class="uc-bubble uc-system-uc" style="left: 280px; top: 72px; width: 140px;">Persist User Profile</div>
+                            <div class="uc-bubble uc-system-uc" style="left: 280px; top: 128px; width: 140px;">Analyze Content</div>
+                            <div class="uc-bubble uc-system-uc" style="left: 280px; top: 182px; width: 140px;">Detect Language</div>
+                            <div class="uc-bubble uc-system-uc" style="left: 280px; top: 236px; width: 140px;">Save Meeting, Dec & Tasks</div>
+                            <div class="uc-bubble uc-system-uc hl-red" style="left: 280px; top: 292px; width: 140px; border-color:var(--danger)">Delete Meeting Data</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 9: DATA MODEL & ERD -->
+            <div class="slide" data-title="7. Data Model">
+                <h1>7. Data Model & ERD <span class="slide-subtitle">Firestore Database Schema</span></h1>
+                <div class="content-body">
+                    <div class="grid-2">
+                        <div class="tab-container">
+                            <div class="tab-content active" style="height:360px;">
+                                <img src="images/erd.jpg" alt="Entity Relationship Diagram">
+                            </div>
+                        </div>
+                        <div class="g-card" style="font-size: 13.5px; height: 360px; overflow-y: auto;">
+                            <h3 class="card-title">Key Entities & Fields:</h3>
+                            <ul class="custom-bullets">
+                                <li>**AppUser:** Namespace identifier, profile parameters.</li>
+                                <li>**Meeting:** Contains metadata (title, status, date) and summaries/minutes text blocks.</li>
+                                <li>**Decision:** Extracted agreements (contains text and owner).</li>
+                                <li>**MeetingTask:** Scoped action items (title, description, assignee, dueDate, priority, status).</li>
+                            </ul>
+                            <div style="background:rgba(255,255,255,0.03); border-left:3px solid var(--accent); padding:10px; margin-top:10px; font-size:12.5px;">
+                                **Note on Deletion:** When a meeting is deleted, all subcollections (decisions, tasks) and their corresponding global tasks are deleted in an atomic write batch.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 10: SEQUENCE DIAGRAMS (1) -->
+            <div class="slide" data-title="8. Auth Sequence">
+                <h1>8. Sequence Model: Authentication <span class="slide-subtitle">State Management</span></h1>
+                <div class="content-body">
+                    <div class="grid-2">
+                        <div class="tab-container">
+                            <div class="tab-content active" style="height:360px;">
+                                <img src="../diagrams/AuthSequenceDiagram.jpeg" alt="Auth Sequence Diagram">
+                            </div>
+                        </div>
+                        <div class="g-card" style="font-size: 13.5px;">
+                            <h3 class="card-title">Authentication Life Cycle:</h3>
+                            <ol style="padding-left: 20px; line-height: 1.6;">
+                                <li style="margin-bottom: 8px;">User inputs credentials into **AuthView**.</li>
+                                <li style="margin-bottom: 8px;">View triggers **AuthNotifier** (Riverpod controller).</li>
+                                <li style="margin-bottom: 8px;">Notifier requests **AuthRepository** layer.</li>
+                                <li style="margin-bottom: 8px;">Repository queries **Firebase Auth** securely.</li>
+                                <li style="margin-bottom: 8px;">Successful credentials update notifier state, triggering immediate navigation redirect via **GoRouter**.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 11: SEQUENCE DIAGRAMS (2) -->
+            <div class="slide" data-title="9. Import & Processing">
+                <h1>9. Sequence Model: Processing <span class="slide-subtitle">Interactive tabbed diagrams</span></h1>
+                <div class="content-body">
+                    <div class="tab-container">
+                        <div class="tab-headers">
+                            <button class="tab-btn active" onclick="switchTab(this, 'import-tab')">A. Meeting Import Flow</button>
+                            <button class="tab-btn" onclick="switchTab(this, 'processing-tab')">B. AI Processing Flow</button>
+                        </div>
+                        <div id="import-tab" class="tab-content active" style="height:340px;">
+                            <img src="../diagrams/MeetingImportSequenceDiagram.jpeg" alt="Meeting Import Sequence">
+                        </div>
+                        <div id="processing-tab" class="tab-content" style="height:340px;">
+                            <img src="../diagrams/AiProccessignSequenceDiagram.jpeg" alt="AI Processing Sequence">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 12: SEQUENCE DIAGRAMS (3) -->
+            <div class="slide" data-title="10. Tasks & Sharing">
+                <h1>10. Sequence Model: Task Sharing <span class="slide-subtitle">Interactive tabbed diagrams</span></h1>
+                <div class="content-body">
+                    <div class="tab-container">
+                        <div class="tab-headers">
+                            <button class="tab-btn active" onclick="switchTab(this, 'tasks-tab')">A. Task Update Flow</button>
+                            <button class="tab-btn" onclick="switchTab(this, 'share-tab')">B. Email Sharing Flow</button>
+                        </div>
+                        <div id="tasks-tab" class="tab-content active" style="height:340px;">
+                            <img src="../diagrams/MeetingDetailsAndTaskUpdateDiagram.jpeg" alt="Meeting Details & Task Updates">
+                        </div>
+                        <div id="share-tab" class="tab-content" style="height:340px;">
+                            <img src="../diagrams/EmailSharingSequenceDiagram.jpeg" alt="Email Sharing Flow">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 13: UML ACTIVITY MODEL -->
+            <div class="slide" data-title="11. Activity Diagram">
+                <h1>11. UML Activity Diagram <span class="slide-subtitle">Import & AI Lifecycle</span></h1>
+                <div class="content-body">
+                    <div class="grid-2">
+                        <div class="tab-container">
+                            <div class="tab-content active" style="height:360px;">
+                                <img src="../diagrams/ActivityDiagram.jpeg" alt="UML Activity Diagram">
+                            </div>
+                        </div>
+                        <div class="g-card" style="font-size: 13px;">
+                            <h3 class="card-title">Activity Decision Points:</h3>
+                            <ul class="custom-bullets">
+                                <li>**Validate Input Source:** Splits control path based on local files vs URLs.</li>
+                                <li>**Format & Size Validation:** Branch path handles error callbacks immediately (size > 50MB rejected).</li>
+                                <li>**Cloud Upload & AI Queue:** Enters serverless execution block. Handles API failure gracefully by changing meeting state to 'Failed'.</li>
+                                <li>**Complete & Sync:** Document state updated to 'Completed' in Firestore, triggering reactive client view updates.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 14: SYSTEM LAYOUTS -->
+            <div class="slide" data-title="12. Component & Deployment">
+                <h1>12. Architectural Topology <span class="slide-subtitle">Systems View</span></h1>
+                <div class="content-body">
+                    <div class="tab-container">
+                        <div class="tab-headers">
+                            <button class="tab-btn active" onclick="switchTab(this, 'comp-tab')">A. System Component Boundaries</button>
+                            <button class="tab-btn" onclick="switchTab(this, 'deploy-tab')">B. System Deployment Nodes</button>
+                        </div>
+                        <div id="comp-tab" class="tab-content active" style="height:340px;">
+                            <img src="images/component.jpg" alt="Component Diagram">
+                        </div>
+                        <div id="deploy-tab" class="tab-content" style="height:340px;">
+                            <img src="images/deployment.jpg" alt="Deployment Diagram">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 15: UML CLASS DIAGRAM -->
+            <div class="slide" data-title="13. UML Class Diagram">
+                <h1>13. UML Class Diagram <span class="slide-subtitle">Domain Data Structures</span></h1>
+                <div class="content-body">
+                    <div class="grid-2">
+                        <div class="tab-container">
+                            <div class="tab-content active" style="height:360px;">
+                                <img src="images/class.jpg" alt="UML Class Diagram">
+                            </div>
+                        </div>
+                        <div class="g-card" style="font-size: 13px;">
+                            <h3 class="card-title">Model Relationships:</h3>
+                            <ul class="custom-bullets">
+                                <li>**AppUserModel:** Maps authenticated user metadata (`id`, `name`, `email`).</li>
+                                <li>**MeetingModel:** Embeds collections of `DecisionModel` and `MeetingTaskModel`. Contains `MeetingStatus` enum (Pending, Processing, Completed, Failed).</li>
+                                <li>**MeetingTaskModel:** Decoupled representation of action items. Map parsing converts database timestamp keys to native Dart `DateTime` instances.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 16: UI DESIGN CAROUSEL -->
+            <div class="slide" data-title="14. UI & Wireframes">
+                <h1>14. User Interface Wireframes <span class="slide-subtitle">Screens & Layouts</span></h1>
+                <div class="content-body">
+                    <div class="grid-2">
+                        <div class="g-card" style="padding: 10px; text-align: center;">
+                            <img src="../diagrams/MeetingDetailsAndTaskUpdateDiagram.jpeg" style="max-height: 250px; object-fit: contain;" alt="Meeting Details Screen">
+                            <div style="font-size: 11px; margin-top: 8px; color: var(--text-muted);">Tabbed Result Views: Summary, Minutes, Decisions & Tasks</div>
+                        </div>
+                        <div class="g-card" style="font-size: 13.5px; height: 100%;">
+                            <h3 class="card-title">Core Screens Implemented:</h3>
+                            <ul class="custom-bullets">
+                                <li>**Auth Flow:** Login and Registration screens with validation feedback.</li>
+                                <li>**Dashboard:** Linear scroll listing previous meetings with colored state badges.</li>
+                                <li>**Import Console:** Paste links or drag-and-drop local audio files directly.</li>
+                                <li>**Global Tasks tab:** Unified task view aggregated across all meetings using atomic duplication keys.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 17: SECURITY RULES & ATOMICITY -->
+            <div class="slide" data-title="15. Security & Atomicity">
+                <h1>15. Security & Write Atomicity <span class="slide-subtitle">Robust Data Design</span></h1>
+                <div class="content-body">
+                    <div class="grid-2">
+                        <div class="g-card">
+                            <h3 class="card-title">🛡️ Firestore Security Rules</h3>
+                            <pre style="font-family: monospace; font-size: 11.5px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; color: #38bdf8;">
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null 
+        && request.auth.uid == userId;
+    }
+  }
+}</pre>
+                            <p style="font-size: 12px; margin-top: 8px; color: var(--text-muted);">
+                                Ensures strict per-user data isolation. Users cannot view or edit meeting records belonging to others.
+                            </p>
+                        </div>
+                        <div class="g-card">
+                            <h3 class="card-title">🔄 Atomic Batch Writes</h3>
+                            <ul class="custom-bullets" style="font-size: 13px;">
+                                <li>**Atomic Double-write:** When Gemini generates tasks, the app writes the records under `/meetings/{meetingId}/tasks/{id}` and `/tasks/{id}` inside a single **WriteBatch** operation.</li>
+                                <li>**Tombstone Cleanup:** When deleting a meeting, all sub-collections and user-level duplicated tasks are updated/deleted atomically to prevent orphaned data.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 18: TESTING & EDGE CASES -->
+            <div class="slide" data-title="16. Testing & Evaluation">
+                <h1>16. Testing & Evaluation <span class="slide-subtitle">Verification Plan</span></h1>
+                <div class="content-body">
+                    <div class="grid-3">
+                        <div class="g-card">
+                            <h3 class="card-title"><span class="hl-blue">✓</span> Unit Testing</h3>
+                            <p style="font-size: 13px; color: var(--text-muted);">Validating URL parsing utilities, checking file size filters (&le;50MB constraints), and testing JSON converters against mock Gemini payloads.</p>
+                        </div>
+                        <div class="g-card">
+                            <h3 class="card-title"><span class="hl-green">✓</span> System Testing</h3>
+                            <p style="font-size: 13px; color: var(--text-muted);">Executing complete user scenarios: registering, logging in, importing files, waiting for AI processing, toggling task states, and confirming email drafts compose correctly.</p>
+                        </div>
+                        <div class="g-card">
+                            <h3 class="card-title"><span class="hl-yellow">✓</span> Edge Cases</h3>
+                            <p style="font-size: 13px; color: var(--text-muted);">Ensuring language preservation handles multilingual transcripts (Arabic/English), managing offline network states, and intercepting bad API formats gracefully.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 19: FUTURE WORK -->
+            <div class="slide" data-title="17. Conclusion">
+                <h1>17. Future Work Roadmap <span class="slide-subtitle">Project Scale</span></h1>
+                <div class="content-body">
+                    <div class="grid-2">
+                        <div class="g-card">
+                            <h3 class="card-title">🚀 Real-time In-app Recording</h3>
+                            <p style="font-size: 13.5px; color: var(--text-muted);">Integrating stream voice transcription nodes directly on the client view during active meetings (eliminating the need to upload post-meeting files).</p>
+                        </div>
+                        <div class="g-card">
+                            <h3 class="card-title">📅 Calendar Integrations</h3>
+                            <p style="font-size: 13.5px; color: var(--text-muted);">Enabling bidirectional task syncing with Google Calendar, Microsoft Outlook, and local Apple/Android device calendars.</p>
+                        </div>
+                    </div>
+                    <div class="g-card" style="margin-top: 15px; text-align: center;">
+                        <span class="hl-indigo">★ Collaborative Workspaces:</span> Sharing meeting records and task delegation lists across multiple users in joint team namespaces.
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 20: Q&A -->
+            <div class="slide title-slide" data-title="Q&A Page">
+                <div class="title-project-badge">End of Presentation</div>
+                <h1 class="title-heading" style="font-size: 56px; margin-bottom: 25px;">Thank You!</h1>
+                <p class="title-subheading" style="font-size: 20px; margin-bottom: 40px;">Open for Questions and Discussion</p>
+                
+                <div style="border-top: 1px solid var(--border-color); padding-top: 35px; width: 100%; max-width: 600px; margin: 0 auto;">
+                    <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 8px;">Project Title</p>
+                    <p style="font-size: 16px; font-weight: 600; margin-bottom: 20px;">Automated Meeting Documentation and Task Tracking (MeetFlow AI)</p>
+                    <p style="font-size: 14px; color: var(--text-muted);">Presented by Hager Elsayed Darwish</p>
+                    <p style="font-size: 14px; color: var(--text-muted);">Track: Software engineer • Supervisor: Dr Mager mamdouh</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Floating Controls -->
+        <div class="floating-controls">
+            <button class="control-btn" id="menuBtn" title="Show Slides Outline">☰</button>
+            <button class="control-btn" id="prevBtn" title="Previous Slide (Left Arrow)">◀</button>
+            <div class="slide-counter">
+                <span class="slide-counter-current" id="slideCounterCurrent">1</span>
+                <span>/</span>
+                <span id="slideCounterTotal">20</span>
+            </div>
+            <button class="control-btn" id="nextBtn" title="Next Slide (Right Arrow/Space)">▶</button>
+            <button class="control-btn" id="fullscreenBtn" title="Toggle Fullscreen">⛶</button>
+        </div>
+
+    </div>
+
+    <!-- Javascript Controls -->
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const menuBtn = document.getElementById('menuBtn');
+        const sidebar = document.getElementById('sidebar');
+        const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+        const sidebarMenu = document.getElementById('sidebarMenu');
+        const slideCounterCurrent = document.getElementById('slideCounterCurrent');
+        const slideCounterTotal = document.getElementById('slideCounterTotal');
+        const progressBar = document.getElementById('progressBar');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+        let currentSlideIdx = 0;
+        slideCounterTotal.textContent = slides.length;
+
+        // Populate sidebar menu
+        slides.forEach((slide, idx) => {
+            const title = slide.getAttribute('data-title') || `Slide ${idx + 1}`;
+            const li = document.createElement('li');
+            li.className = `sidebar-item ${idx === 0 ? 'active' : ''}`;
+            li.innerHTML = `
+                <span class="sidebar-item-num">${idx + 1}</span>
+                <span>${title}</span>
+            `;
+            li.addEventListener('click', () => {
+                goToSlide(idx);
+                sidebar.classList.remove('open');
+            });
+            sidebarMenu.appendChild(li);
+        });
+
+        const sidebarItems = document.querySelectorAll('.sidebar-item');
+
+        function updateControls() {
+            slideCounterCurrent.textContent = currentSlideIdx + 1;
+            const progressPct = ((currentSlideIdx + 1) / slides.length) * 100;
+            progressBar.style.width = `${progressPct}%`;
+
+            // Update active menu item
+            sidebarItems.forEach((item, idx) => {
+                if (idx === currentSlideIdx) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        function goToSlide(idx) {
+            if (idx < 0 || idx >= slides.length) return;
+            slides[currentSlideIdx].classList.remove('active');
+            currentSlideIdx = idx;
+            slides[currentSlideIdx].classList.add('active');
+            updateControls();
+        }
+
+        function nextSlide() {
+            if (currentSlideIdx < slides.length - 1) {
+                goToSlide(currentSlideIdx + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlideIdx > 0) {
+                goToSlide(currentSlideIdx - 1);
+            }
+        }
+
+        // Click handlers
+        prevBtn.addEventListener('click', prevSlide);
+        nextBtn.addEventListener('click', nextSlide);
+
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.add('open');
+        });
+
+        closeSidebarBtn.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+        });
+
+        // Key handlers
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                nextSlide();
+                e.preventDefault();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                prevSlide();
+                e.preventDefault();
+            } else if (e.key === 'Home') {
+                goToSlide(0);
+                e.preventDefault();
+            } else if (e.key === 'End') {
+                goToSlide(slides.length - 1);
+                e.preventDefault();
+            } else if (e.key === 'Escape') {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // Toggle Fullscreen
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error enabling fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // Switch diagram tabs
+        function switchTab(btn, tabId) {
+            const container = btn.closest('.tab-container');
+            const buttons = container.querySelectorAll('.tab-btn');
+            const contents = container.querySelectorAll('.tab-content');
+
+            buttons.forEach(b => b.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+
+            btn.classList.add('active');
+            container.querySelector(`#${tabId}`).classList.add('active');
+        }
+    </script>
+</body>
+</html>

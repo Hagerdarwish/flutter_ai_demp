@@ -117,8 +117,9 @@ If any value is unknown, use an empty string or empty array.
   @override
   Future<Map<String, dynamic>> processMeetingUrl(String url) async {
     try {
-      dev.log('[GeminiService] Processing URL: $url', name: 'MeetFlow');
-      final response = await http.get(Uri.parse(url));
+      final transformedUrl = _transformUrl(url);
+      dev.log('[GeminiService] Processing URL: $url (Transformed: $transformedUrl)', name: 'MeetFlow');
+      final response = await http.get(Uri.parse(transformedUrl));
       dev.log('[GeminiService] HTTP status: ${response.statusCode}',
           name: 'MeetFlow');
 
@@ -133,9 +134,10 @@ If any value is unknown, use an empty string or empty array.
           contentType.contains('text') || contentType.contains('json');
 
       if (isTextContent) {
+        final cleanedBody = _stripHtml(response.body);
         final content = [
           Content.text(
-              '$_systemPrompt\n\nMeeting transcript:\n${response.body}'),
+              '$_systemPrompt\n\nMeeting transcript:\n$cleanedBody'),
         ];
         final aiResponse = await _model.generateContent(content);
         final text = aiResponse.text;
@@ -223,5 +225,56 @@ If any value is unknown, use an empty string or empty array.
       return contentType.split(';').first.trim();
     }
     return 'application/octet-stream';
+  }
+
+  String _transformUrl(String url) {
+    var targetUrl = url.trim();
+    
+    // Google Drive
+    final driveRegExp1 = RegExp(r'drive\.google\.com/file/d/([a-zA-Z0-9_-]+)');
+    final driveRegExp2 = RegExp(r'drive\.google\.com/open\?id=([a-zA-Z0-9_-]+)');
+    
+    final match1 = driveRegExp1.firstMatch(targetUrl);
+    if (match1 != null) {
+      final fileId = match1.group(1);
+      return 'https://drive.google.com/uc?export=download&id=$fileId';
+    }
+    
+    final match2 = driveRegExp2.firstMatch(targetUrl);
+    if (match2 != null) {
+      final fileId = match2.group(1);
+      return 'https://drive.google.com/uc?export=download&id=$fileId';
+    }
+    
+    // Dropbox
+    if (targetUrl.contains('dropbox.com')) {
+      if (targetUrl.endsWith('dl=0')) {
+        return targetUrl.substring(0, targetUrl.length - 4) + 'dl=1';
+      } else if (!targetUrl.contains('dl=1')) {
+        if (targetUrl.contains('?')) {
+          return '$targetUrl&dl=1';
+        } else {
+          return '$targetUrl?dl=1';
+        }
+      }
+    }
+    
+    return targetUrl;
+  }
+
+  String _stripHtml(String html) {
+    var text = html;
+    text = text.replaceAll(RegExp(r'<script[^>]*>[\s\S]*?<\/script>', caseSensitive: false), '');
+    text = text.replaceAll(RegExp(r'<style[^>]*>[\s\S]*?<\/style>', caseSensitive: false), '');
+    text = text.replaceAll(RegExp(r'<!--[\s\S]*?-->'), '');
+    text = text.replaceAll(RegExp(r'<[^>]*>'), ' ');
+    text = text.replaceAll(RegExp(r'\s+'), ' ');
+    text = text.replaceAll('&nbsp;', ' ')
+               .replaceAll('&amp;', '&')
+               .replaceAll('&lt;', '<')
+               .replaceAll('&gt;', '>')
+               .replaceAll('&quot;', '"')
+               .replaceAll('&#39;', "'");
+    return text.trim();
   }
 }
