@@ -33,12 +33,17 @@ class AppColors {
   // --- Semantic ---
   static const Color success = Color(0xFF22C55E);
   static const Color successLight = Color(0xFFDCFCE7);
+  static const Color successForeground = Color(0xFF166534);
   static const Color warning = Color(0xFFF59E0B);
   static const Color warningLight = Color(0xFFFEF3C7);
+  static const Color warningForeground = Color(0xFF92400E);
   static const Color error = Color(0xFFEF4444);
   static const Color errorLight = Color(0xFFFEE2E2);
+  static const Color errorForeground = Color(0xFF991B1B);
   static const Color info = Color(0xFF3B82F6);
   static const Color infoLight = Color(0xFFDBEAFE);
+  static const Color infoForeground = Color(0xFF1D4ED8);
+  static const Color neutralForeground = Color(0xFF475569);
 
   // --- Status Colors ---
   static const Color statusDraft = Color(0xFF94A3B8);

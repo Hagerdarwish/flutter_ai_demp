@@ -33,20 +33,20 @@ class StatusChip extends StatelessWidget {
   Color get _color {
     switch (status) {
       case WidgetMeetingStatus.draft:
-        return AppColors.statusDraft;
+        return AppColors.neutralForeground;
       case WidgetMeetingStatus.processing:
-        return AppColors.statusProcessing;
+        return AppColors.warningForeground;
       case WidgetMeetingStatus.completed:
-        return AppColors.statusCompleted;
+        return AppColors.successForeground;
       case WidgetMeetingStatus.failed:
-        return AppColors.statusFailed;
+        return AppColors.errorForeground;
     }
   }
 
   Color get _bgColor {
     switch (status) {
       case WidgetMeetingStatus.draft:
-        return AppColors.statusDraft.withValues(alpha: 0.12);
+        return AppColors.dividerLight;
       case WidgetMeetingStatus.processing:
         return AppColors.warningLight;
       case WidgetMeetingStatus.completed:
@@ -82,13 +82,26 @@ class PriorityChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color, bg) = switch (priority) {
-      WidgetTaskPriority.low => ('Low', AppColors.priorityLow, AppColors.successLight),
-      WidgetTaskPriority.medium => ('Medium', AppColors.priorityMedium, AppColors.warningLight),
-      WidgetTaskPriority.high => ('High', AppColors.priorityHigh, AppColors.errorLight),
+      WidgetTaskPriority.low => (
+          'Low',
+          AppColors.successForeground,
+          AppColors.successLight
+        ),
+      WidgetTaskPriority.medium => (
+          'Medium',
+          AppColors.warningForeground,
+          AppColors.warningLight
+        ),
+      WidgetTaskPriority.high => (
+          'High',
+          AppColors.errorForeground,
+          AppColors.errorLight
+        ),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -108,14 +121,26 @@ class TaskStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color, bg) = switch (status) {
-      WidgetTaskStatus.pending =>
-        ('Pending', AppColors.statusDraft, AppColors.statusDraft.withValues(alpha: 0.12)),
-      WidgetTaskStatus.inProgress => ('In Progress', AppColors.info, AppColors.infoLight),
-      WidgetTaskStatus.completed => ('Completed', AppColors.success, AppColors.successLight),
+      WidgetTaskStatus.pending => (
+          'Pending',
+          AppColors.neutralForeground,
+          AppColors.dividerLight
+        ),
+      WidgetTaskStatus.inProgress => (
+          'In Progress',
+          AppColors.infoForeground,
+          AppColors.infoLight
+        ),
+      WidgetTaskStatus.completed => (
+          'Completed',
+          AppColors.successForeground,
+          AppColors.successLight
+        ),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(

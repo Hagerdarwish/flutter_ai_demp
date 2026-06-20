@@ -98,28 +98,35 @@ class _TasksPageState extends ConsumerState<TasksPage> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             scrollDirection: Axis.horizontal,
             children: [
-              FilterChip(
-                  label: const Text('All'),
-                  selected: _statusFilter == null,
-                  onSelected: (_) => setState(() => _statusFilter = null)),
+              _filterChip(
+                label: 'All',
+                selected: _statusFilter == null,
+                onSelected: (_) => setState(() => _statusFilter = null),
+              ),
               const SizedBox(width: 8),
-              FilterChip(
-                  label: const Text('Pending'),
-                  selected: _statusFilter == TaskStatus.pending,
-                  onSelected: (_) =>
-                      setState(() => _statusFilter = TaskStatus.pending)),
+              _filterChip(
+                label: 'Pending',
+                selected: _statusFilter == TaskStatus.pending,
+                selectedColor: AppColors.neutralForeground,
+                onSelected: (_) =>
+                    setState(() => _statusFilter = TaskStatus.pending),
+              ),
               const SizedBox(width: 8),
-              FilterChip(
-                  label: const Text('In Progress'),
-                  selected: _statusFilter == TaskStatus.inProgress,
-                  onSelected: (_) =>
-                      setState(() => _statusFilter = TaskStatus.inProgress)),
+              _filterChip(
+                label: 'In Progress',
+                selected: _statusFilter == TaskStatus.inProgress,
+                selectedColor: AppColors.infoForeground,
+                onSelected: (_) =>
+                    setState(() => _statusFilter = TaskStatus.inProgress),
+              ),
               const SizedBox(width: 8),
-              FilterChip(
-                  label: const Text('Completed'),
-                  selected: _statusFilter == TaskStatus.completed,
-                  onSelected: (_) =>
-                      setState(() => _statusFilter = TaskStatus.completed)),
+              _filterChip(
+                label: 'Completed',
+                selected: _statusFilter == TaskStatus.completed,
+                selectedColor: AppColors.successForeground,
+                onSelected: (_) =>
+                    setState(() => _statusFilter = TaskStatus.completed),
+              ),
             ],
           ),
         ),
@@ -129,36 +136,73 @@ class _TasksPageState extends ConsumerState<TasksPage> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
             scrollDirection: Axis.horizontal,
             children: [
-              FilterChip(
-                  label: const Text('Any Priority'),
-                  selected: _priorityFilter == null,
-                  onSelected: (_) => setState(() => _priorityFilter = null)),
+              _filterChip(
+                label: 'Any Priority',
+                selected: _priorityFilter == null,
+                onSelected: (_) => setState(() => _priorityFilter = null),
+              ),
               const SizedBox(width: 8),
-              FilterChip(
-                  label: const Text('High'),
-                  selected: _priorityFilter == TaskPriority.high,
-                  selectedColor: AppColors.error.withValues(alpha: 0.15),
-                  onSelected: (_) =>
-                      setState(() => _priorityFilter = TaskPriority.high)),
+              _filterChip(
+                label: 'High',
+                selected: _priorityFilter == TaskPriority.high,
+                selectedColor: AppColors.errorForeground,
+                onSelected: (_) =>
+                    setState(() => _priorityFilter = TaskPriority.high),
+              ),
               const SizedBox(width: 8),
-              FilterChip(
-                  label: const Text('Medium'),
-                  selected: _priorityFilter == TaskPriority.medium,
-                  selectedColor: AppColors.warning.withValues(alpha: 0.15),
-                  onSelected: (_) =>
-                      setState(() => _priorityFilter = TaskPriority.medium)),
+              _filterChip(
+                label: 'Medium',
+                selected: _priorityFilter == TaskPriority.medium,
+                selectedColor: AppColors.warningForeground,
+                onSelected: (_) =>
+                    setState(() => _priorityFilter = TaskPriority.medium),
+              ),
               const SizedBox(width: 8),
-              FilterChip(
-                  label: const Text('Low'),
-                  selected: _priorityFilter == TaskPriority.low,
-                  selectedColor: AppColors.success.withValues(alpha: 0.15),
-                  onSelected: (_) =>
-                      setState(() => _priorityFilter = TaskPriority.low)),
+              _filterChip(
+                label: 'Low',
+                selected: _priorityFilter == TaskPriority.low,
+                selectedColor: AppColors.successForeground,
+                onSelected: (_) =>
+                    setState(() => _priorityFilter = TaskPriority.low),
+              ),
             ],
           ),
         ),
         const Divider(height: 1),
       ],
+    );
+  }
+
+  Widget _filterChip({
+    required String label,
+    required bool selected,
+    required ValueChanged<bool> onSelected,
+    Color? selectedColor,
+  }) {
+    final theme = Theme.of(context);
+    final selectedBackground = selectedColor ?? AppColors.primary;
+    final foreground =
+        selected ? Colors.white : theme.colorScheme.onSurfaceVariant;
+
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: onSelected,
+      showCheckmark: selected,
+      selectedColor: selectedBackground,
+      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+      checkmarkColor: foreground,
+      labelStyle: AppTextStyles.labelMedium(context).copyWith(
+        color: foreground,
+        fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+        letterSpacing: 0,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      side: BorderSide(
+        color: selected ? selectedBackground : theme.colorScheme.outline,
+      ),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
     );
   }
 }
@@ -211,15 +255,21 @@ class _TaskCard extends ConsumerWidget {
             Row(
               children: [
                 if (task.assignee.isNotEmpty) ...[
-                  const Icon(Icons.person_outline_rounded,
-                      size: 14, color: AppColors.textSecondaryLight),
+                  Icon(
+                    Icons.person_outline_rounded,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 4),
                   Text(task.assignee, style: AppTextStyles.labelSmall(context)),
                   const SizedBox(width: 12),
                 ],
                 if (task.dueDate.isNotEmpty) ...[
-                  const Icon(Icons.event_rounded,
-                      size: 14, color: AppColors.textSecondaryLight),
+                  Icon(
+                    Icons.event_rounded,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 4),
                   Text(DateFormatter.formatDueDate(task.dueDate),
                       style: AppTextStyles.labelSmall(context)),
@@ -265,7 +315,9 @@ class _TaskCard extends ConsumerWidget {
                         .read(tasksNotifierProvider.notifier)
                         .updateStatus(task.id, TaskStatus.pending),
                     style: TextButton.styleFrom(
-                        foregroundColor: AppColors.textSecondaryLight),
+                      foregroundColor:
+                          Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                     child: const Text('Reopen', style: TextStyle(fontSize: 12)),
                   ),
               ],

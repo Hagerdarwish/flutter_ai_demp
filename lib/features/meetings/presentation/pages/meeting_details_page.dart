@@ -169,9 +169,8 @@ class _MeetingDetailsView extends ConsumerWidget {
                       runSpacing: 8,
                       children: meeting.participants
                           .map((p) => Chip(
-                                label: Text(p),
-                                avatar:
-                                    const Icon(Icons.person_rounded, size: 16),
+                                label: Text(p, style: TextStyle(color: AppColors.primary)),
+                                avatar: const Icon(Icons.person_rounded, size: 16),
                               ))
                           .toList(),
                     ),
@@ -232,12 +231,11 @@ class _MeetingDetailsView extends ConsumerWidget {
               const SizedBox(width: 16),
               const Icon(Icons.source_rounded, color: Colors.white70, size: 14),
               const SizedBox(width: 6),
-              Text(
-                meeting.sourceName.isNotEmpty
-                    ? meeting.sourceName
-                    : meeting.fileType,
-                style: AppTextStyles.bodySmall(context)
-                    .copyWith(color: Colors.white70),
+              Expanded(
+                child: Text(
+                  meeting.sourceName.isNotEmpty ? meeting.sourceName : meeting.fileType,
+                  style: AppTextStyles.bodySmall(context).copyWith(color: Colors.white70),
+                ),
               ),
             ],
           ),
